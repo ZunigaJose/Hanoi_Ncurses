@@ -6,15 +6,11 @@ using namespace std;
 WINDOW *win;
 int mx, my;
 
-void iniwin() {
-  cbreak();
+void iniWin() {
   noecho();
-  nonl();
   start_color();
   string mArriba = " T O R R E S  D E  H A N O I ";
   string mAbajo = " P R O G R A M A C I O N  I I I ";
-  intrflush(win, FALSE);
-  keypad(win, TRUE);
   win = newwin(my, mx, 0, 0);
   box(win, ACS_VLINE, ACS_HLINE);
   mvwprintw(win, 0, (mx - mArriba.size()) / 2, mArriba.c_str());
@@ -68,8 +64,8 @@ void base () {
 int main () {
   initscr();
   getmaxyx(stdscr, my, mx);
-  iniwin();
   start_color();
+  iniWin();
   base();
   getchar();
   refresh();
