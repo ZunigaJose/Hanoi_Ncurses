@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <string>
+#include <iostream>
 using namespace std;
 
 WINDOW *win;
@@ -31,20 +32,22 @@ void agujas(int lbase) {
   int distancia = (lbase  - 3) / 4;
   int h = my - 14;
   int vAnt = distancia  ; //porque comienza en cuatro;
+  start_color();
   init_pair(1, COLOR_WHITE, COLOR_WHITE);
   init_pair(3 , COLOR_BLACK, COLOR_BLUE);
   for (int i = 0; i < 3; i++) {
     for (size_t j = 0; j <= h; j++) {
-      if (j == 0) {
-        wattron(win, COLOR_PAIR(3));
-        mvwprintw(win, my - 6, 4 + vAnt, to_string(i + 1).c_str());
-        wattroff(win, COLOR_PAIR(3));
-      }
       wattron(win, COLOR_PAIR(1));
       mvwprintw(win, my - 6 - j, 4 + vAnt, " ");
       wattroff(win, COLOR_PAIR(1));
+      if (j == 0) {
+        attron(COLOR_PAIR(1));
+        mvwprintw(win, my - 6, 4 + vAnt, to_string(i + 1).c_str());
+        attroff(COLOR_PAIR(1));
+      }
     }
     vAnt += 1 + distancia;
+    wrefresh(win);
   }
 }
 
@@ -65,10 +68,12 @@ void base () {
 int main () {
   initscr();
   getmaxyx(stdscr, my, mx);
-  iniwin(); 
+  iniwin();
   start_color();
   base();
   getchar();
+  refresh();
+  getch();
   endwin();
   return 0;
 }
