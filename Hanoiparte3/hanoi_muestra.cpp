@@ -4,12 +4,16 @@
 using namespace std;
 vector<int> vect;
 WINDOW *win;
-int mx, my, nMovi;
+int mx, my, nMovi = -1;
 int lBase;
+bool Continuara = true;
 
 void iniWin() {
   noecho();
+  cbreak();
+  nonl();
   start_color();
+  keypad(win, TRUE);
   string mArriba = " T O R R E S  D E  H A N O I ";
   string mAbajo = " P R O G R A M A C I O N  I I I ";
   win = newwin(my, mx, 0, 0);
@@ -26,12 +30,29 @@ void iniWin() {
   wrefresh(win);
 }
 
-void agujas() {
-  int distancia = (lBase  - 3) / 4;
+void clearScr() {
+  lBase = mx - 8;
+  //Clear
+  init_pair(69, COLOR_BLACK,COLOR_BLACK);
+  for (int i = 0; i < my -14; i++) {
+    for (int j = 0; j < lBase; j++) {
+      wattron(win, COLOR_PAIR(69));
+      mvwprintw(win, my - (6 + i), 4 + j, " ");
+      wattroff(win, COLOR_PAIR(69));
+    }
+  }
+  //Base
+  init_pair(1, COLOR_WHITE, COLOR_WHITE);
+  for (size_t i = 0; i < lBase; i++)
+  {
+    wattron(win, COLOR_PAIR(1));
+    mvwprintw(win, my - 6, 4 + i, " ");
+    wattroff(win, COLOR_PAIR(1));
+  }
+  //Agujas
+  int distancia = (lBase - 3) / 4;
   int h = my - 14;
   int vAnt = distancia  ; //porque comienza en cuatro;
-  start_color();
-  init_pair(1, COLOR_WHITE, COLOR_WHITE);
   init_pair(3 , COLOR_BLACK, COLOR_WHITE);
   if (lBase < 0) {
     return;
@@ -52,6 +73,10 @@ void agujas() {
   wrefresh(win);
 }
 
+void printMovi() {
+  mvwprintw(win, 2, (mx - 13) / 2 + 14, to_string(nMovi).c_str());
+}
+
 //1 -> funcion busque cuales estan en la fila ej(vect[j] == i) 
 //2 -> recorrer inverso de esas coincidencias, asi se imprimen los de mayor tamaño
 //3 -> color dependiendo de j
@@ -65,7 +90,16 @@ string disk(int x) {
   return disk;
 }
 
+bool continuar();
+
 void imprimir() {
+  if (!Continuara){
+    endwin();
+    exit(0);
+    return;
+  }
+  Continuara = continuar();
+  clearScr();
   int distancia = (lBase  - 3) / 4 + 4;
   int vAnt = distancia;
   int impresas = 0; //my - (7 + impresas)
@@ -78,37 +112,40 @@ void imprimir() {
         wattroff(win, COLOR_PAIR(4));
       }
     }
-    vAnt += 1 + distancia;
+    vAnt += distancia;
     impresas = 0;
   }
-  getch();
+  nMovi++;
+  printMovi();
+}
+
+bool continuar(){
+  char x = wgetch(win);
+  if(x == KEY_EXIT){
+    endwin();
+    return false;
+  } else {
+    return true;
+  }
 }
 
 void hanoi(int n, int A, int B, int C) {
     if (n == 1) {
         vect[0] = C;
-        //imprimir();
+        imprimir();
     }
     else {
+        //imprimir();
+        //nMovi++;
         hanoi (n - 1, A, C, B);
         vect[n - 1] = C;
-        //imprimir();
+        //nMovi++;
+        imprimir();
+        if(!Continuara) {
+          return;
+        }
         hanoi (n - 1, B, A, C);
     }
-}
-
-void base () {
-    //"\u25AE"
-    //my - 6
-    lBase = mx - 8;
-    init_pair(1, COLOR_WHITE, COLOR_WHITE);
-    for (size_t i = 0; i < lBase; i++) {
-      wattron(win, COLOR_PAIR(1));
-      mvwprintw(win, my - 6, 4 + i, " ");
-      wattroff(win, COLOR_PAIR(1));
-    }
-    agujas();
-    wrefresh(win);
 }
 
 int main () {
@@ -116,8 +153,6 @@ int main () {
   int num;  
   start_color();
   initscr();
-  int distancia = (lBase  - 3) / 4;
-  int vAnt = distancia;
   printw("Ingrese la cantidad de discos: ");
   c = getch();
   num = (int)c - 48;
@@ -128,20 +163,17 @@ int main () {
   }
   getmaxyx(stdscr, my, mx);
   iniWin();
-  base();
+  clearScr();
   vect.resize(num);
   fill(vect.begin(), vect.end(), 1);
   init_pair(2, COLOR_RED, COLOR_RED);
-  /*wattron(win, COLOR_PAIR(2));
-  mvwprintw(win, my - (7), 4 + vAnt, disk(1).c_str());
-  wattroff(win, COLOR_PAIR(2));
-  wrefresh(win);*/
-  //hanoi(num,1, 2, 3);
   imprimir();
+  hanoi(num,1, 2, 3);
   wrefresh(win);
-  getchar();
   refresh();
-  getch();
+  while (Continuara) {
+    Continuara = continuar();
+  }
   endwin();
   return 0;
 }
